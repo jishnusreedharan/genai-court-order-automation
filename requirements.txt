@@ -1,0 +1,15 @@
+fastapi
+uvicorn
+pydantic
+python-multipart
+pytesseract
+pdf2image
+Pillow
+langchain>=0.2.0
+langgraph
+langchain-community
+langchainhub
+faiss-cpu
+transformers
+torch==2.2.0
+langchain-huggingface  

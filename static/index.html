@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Upload Court Order PDF</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f3f3f3; }
+        h2 { color: #333; }
+        #resultBox { 
+            margin-top: 20px; 
+            padding: 15px; 
+            border: 1px solid #ccc; 
+            background: #fff; 
+            width: fit-content;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        #statusBar {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #e0e0e0;
+            color: #555;
+            font-weight: bold;
+            text-align: center;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h2>Upload Court Order PDF</h2>
+    <form id="uploadForm" enctype="multipart/form-data">
+        <input type="file" name="file" id="fileInput">
+        <button type="submit">Upload & Process</button>
+    </form>
+    <div id="statusBar">Choose a file to begin</div>
+    <div id="resultBox"></div>
+
+    <script>
+        const form = document.getElementById('uploadForm');
+        const resultBox = document.getElementById('resultBox');
+        const statusBar = document.getElementById('statusBar');
+        const fileInput = document.getElementById('fileInput');
+
+        // Clear previous result when a new file is chosen
+        fileInput.addEventListener('change', () => {
+            resultBox.innerHTML = "";
+            statusBar.innerHTML = "Choose a file to begin";
+        });
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData();
+            formData.append("file", fileInput.files[0]);
+
+            statusBar.innerHTML = "Processing...";
+
+            const response = await fetch("/process_doc", {
+                method: "POST",
+                body: formData
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                resultBox.innerHTML = `
+                    <strong>National ID:</strong> ${data.national_id}<br>
+                    <strong>Customer ID:</strong> ${data.customer_id}<br>
+                    <strong>Action:</strong> ${data.action}<br>
+                    <strong>Outcome:</strong> ${data.outcome}
+                `;
+                statusBar.innerHTML = "Processing complete!";
+            } else {
+                resultBox.innerHTML = `<span style='color:red;'>${data.message}</span>`;
+                statusBar.innerHTML = "Error: " + data.message;
+            }
+        });
+    </script>
+</body>
+</html>
