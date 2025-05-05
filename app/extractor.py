@@ -8,7 +8,7 @@ import re, os, json
 # 1. Initialize embeddings
 embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
 
-# 2. Function to create vector DB from a single document
+# 2. vector DB from a single document
 def create_vectorstore_from_text(document_text: str):
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=50)
     chunks = text_splitter.split_text(document_text)
@@ -16,12 +16,12 @@ def create_vectorstore_from_text(document_text: str):
     vectorstore = FAISS.from_documents(docs, embeddings)
     return vectorstore
 
-# 3. Function to use similarity search to get relevant chunks and extract info via LLM
+# 3. similarity search to get relevant chunks and extract info via LLM
 llm_pipeline = pipeline("text2text-generation", model="google/flan-t5-base", max_new_tokens=256)
 
 def extract_fields_with_llm(document_text: str) -> dict:
     try:
-        # Use full document if short, else do similarity search
+       
         use_full_text = len(document_text) < 2000
         if use_full_text:
             combined_context = document_text
@@ -31,7 +31,7 @@ def extract_fields_with_llm(document_text: str) -> dict:
             top_docs = vectorstore.similarity_search(query, k=3)
             combined_context = "\n".join([doc.page_content for doc in top_docs])
 
-        # New prompt to enforce strict JSON output
+       
         prompt = f"""
 Extract the following information from the legal court document below:
 - National ID (must be exactly a 10-digit number found in the text)
@@ -45,9 +45,8 @@ Document:
 """
 
         result = llm_pipeline(prompt)[0]['generated_text']
-        # print("LLM Output:", result)
-
-        # Extract JSON-like content
+        
+        
         json_match = re.search(r'"national_id"\s*:\s*"\d{10}".*?"action"\s*:\s*"[a-zA-Z_]+"', result, re.DOTALL)
         if json_match:
             json_str = "{" + json_match.group() + "}"
